@@ -208,4 +208,6 @@ export const SOCIALS = [
   { label: 'Instagram', url: 'https://www.instagram.com/santosdlaysa' },
 ]
 
-export const CONTACT_EMAIL = 'contato@norviasolutions.com'
+export const CONTACT_EMAIL = 'santosdlaysa@gmail.com'
+export const CONTACT_PHONE = '(95) 99137-1313'
+export const CONTACT_PHONE_LINK = 'tel:+5595991371313'

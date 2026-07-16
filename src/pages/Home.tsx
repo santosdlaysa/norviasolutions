@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
-import { PRODUCTS, SOCIALS, CONTACT_EMAIL } from '../data/products'
+import { PRODUCTS, SOCIALS, CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_LINK } from '../data/products'
 
 export default function Home() {
   const trackRef = useRef<HTMLDivElement>(null)
@@ -218,9 +218,14 @@ export default function Home() {
                 Conte pra gente o que trava o seu dia a dia. A Norvia transforma isso em um app ou
                 sistema que funciona.
               </p>
-              <a className="btn btn-gold" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
-              </a>
+              <div className="contato-ctas">
+                <a className="btn btn-gold" href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
+                <a className="btn btn-ghost" href={CONTACT_PHONE_LINK}>
+                  {CONTACT_PHONE}
+                </a>
+              </div>
               <div className="socials">
                 {SOCIALS.map((s) => (
                   <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer">
