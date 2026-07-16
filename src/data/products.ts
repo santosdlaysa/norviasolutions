@@ -10,6 +10,7 @@ export interface Product {
   hue: string
   platform: string
   tech: string
+  image: string
   summary: string
   description: string[]
   features: { title: string; text: string }[]
@@ -19,6 +20,7 @@ export interface Product {
 export const PRODUCTS: Product[] = [
   {
     slug: 'doce-preco',
+    image: '/products/doce-preco.png',
     name: 'Doce Preço',
     tag: 'Confeitaria',
     hue: 'var(--rosa)',
@@ -40,6 +42,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'agronet',
+    image: '/products/agronet.png',
     name: 'AgroNet',
     tag: 'Agro',
     hue: 'var(--campo)',
@@ -61,6 +64,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'cafecontroll',
+    image: '/products/cafecontroll.png',
     name: 'CaféControll',
     tag: 'Cafeteria',
     hue: 'var(--cafe)',
@@ -82,6 +86,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'orgenyx',
+    image: '/products/orgenyx.png',
     name: 'Orgenyx',
     tag: 'Produtividade',
     hue: 'var(--lilas)',
@@ -106,6 +111,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'organiza-ela',
+    image: '/products/organiza-ela.jpeg',
     name: 'Organiza Ela',
     tag: 'Organização pessoal',
     hue: 'var(--rosa)',
@@ -127,6 +133,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'agendamais',
+    image: '/products/agendamais.png',
     name: 'AgendaMais',
     tag: 'Agendamento',
     hue: 'var(--ceu)',
@@ -151,6 +158,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'lumera-fest',
+    image: '/products/lumera-fest.png',
     name: 'Lumera Fest',
     tag: 'Eventos',
     hue: 'var(--sol)',
@@ -172,6 +180,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'daex',
+    image: '/products/daex.png',
     name: 'Daex',
     tag: 'E-commerce',
     hue: 'var(--gold)',

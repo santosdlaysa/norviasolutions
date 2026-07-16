@@ -1,8 +1,34 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
 import { PRODUCTS, SOCIALS, CONTACT_EMAIL } from '../data/products'
 
 export default function Home() {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [canPrev, setCanPrev] = useState(false)
+  const [canNext, setCanNext] = useState(true)
+
+  const updateArrows = useCallback(() => {
+    const el = trackRef.current
+    if (!el) return
+    setCanPrev(el.scrollLeft > 4)
+    setCanNext(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }, [])
+
+  useEffect(() => {
+    updateArrows()
+    window.addEventListener('resize', updateArrows)
+    return () => window.removeEventListener('resize', updateArrows)
+  }, [updateArrows])
+
+  const slide = (dir: 1 | -1) => {
+    const el = trackRef.current
+    if (!el) return
+    const card = el.querySelector<HTMLElement>('.card')
+    const step = card ? card.offsetWidth + 18 : el.clientWidth * 0.8
+    el.scrollBy({ left: dir * step, behavior: 'smooth' })
+  }
+
   return (
     <main>
       <section className="hero wrap">
@@ -45,27 +71,51 @@ export default function Home() {
               — e está em produção, nas lojas ou na web.
             </p>
           </Reveal>
-          <div className="grid">
-            {PRODUCTS.map((p) => (
-              <Reveal key={p.slug} style={{ display: 'grid' }}>
-                <Link
-                  className="card"
-                  style={{ '--hue': p.hue } as React.CSSProperties}
-                  to={`/produtos/${p.slug}`}
-                >
-                  <span className="tag">{p.tag}</span>
-                  <h3>{p.name}</h3>
-                  <p>{p.summary}</p>
-                  <span className="foot">
-                    <span>
-                      {p.platform} · {p.tech.split(' · ')[0]}
+          <Reveal>
+            <div className="carousel-wrap">
+              <button
+                type="button"
+                className="car-btn prev"
+                aria-label="Produtos anteriores"
+                onClick={() => slide(-1)}
+                disabled={!canPrev}
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                className="car-btn next"
+                aria-label="Próximos produtos"
+                onClick={() => slide(1)}
+                disabled={!canNext}
+              >
+                →
+              </button>
+              <div className="carousel" ref={trackRef} onScroll={updateArrows}>
+                {PRODUCTS.map((p) => (
+                  <Link
+                    key={p.slug}
+                    className="card"
+                    style={{ '--hue': p.hue } as React.CSSProperties}
+                    to={`/produtos/${p.slug}`}
+                  >
+                    <span className="card-img">
+                      <img src={p.image} alt={`Tela do ${p.name}`} loading="lazy" />
                     </span>
-                    <span className="go">Detalhes ↗</span>
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+                    <span className="tag">{p.tag}</span>
+                    <h3>{p.name}</h3>
+                    <p>{p.summary}</p>
+                    <span className="foot">
+                      <span>
+                        {p.platform} · {p.tech.split(' · ')[0]}
+                      </span>
+                      <span className="go">Detalhes ↗</span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
