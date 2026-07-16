@@ -222,8 +222,13 @@ export default function Home() {
                 <a className="btn btn-gold" href={`mailto:${CONTACT_EMAIL}`}>
                   {CONTACT_EMAIL}
                 </a>
-                <a className="btn btn-ghost" href={CONTACT_PHONE_LINK}>
-                  {CONTACT_PHONE}
+                <a
+                  className="btn btn-ghost"
+                  href={CONTACT_PHONE_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  WhatsApp · {CONTACT_PHONE}
                 </a>
               </div>
               <div className="socials">

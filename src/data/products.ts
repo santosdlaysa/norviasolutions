@@ -210,4 +210,5 @@ export const SOCIALS = [
 
 export const CONTACT_EMAIL = 'santosdlaysa@gmail.com'
 export const CONTACT_PHONE = '(95) 99137-1313'
-export const CONTACT_PHONE_LINK = 'tel:+5595991371313'
+export const CONTACT_PHONE_LINK =
+  'https://wa.me/5595991371313?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Norvia%20Solutions.'
