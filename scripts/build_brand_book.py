@@ -7,6 +7,7 @@ from reportlab.platypus import (
     BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, PageBreak,
     Table, TableStyle, Image, KeepTogether
 )
+from reportlab.platypus import Flowable
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
@@ -87,7 +88,7 @@ class Book(BaseDocTemplate):
     def __init__(self, filename):
         BaseDocTemplate.__init__(self, filename, pagesize=A4, leftMargin=20*mm, rightMargin=20*mm, topMargin=22*mm, bottomMargin=21*mm)
         frame = Frame(self.leftMargin, self.bottomMargin, self.width, self.height, id='normal')
-        self.addPageTemplates([PageTemplate(id='normal', frames=frame, onPage=page_bg), PageTemplate(id='cover', frames=frame, onPage=cover_bg)])
+        self.addPageTemplates([PageTemplate(id='cover', frames=frame, onPage=cover_bg, autoNextPageTemplate='normal'), PageTemplate(id='normal', frames=frame, onPage=page_bg)])
 
 def section(title, kicker, intro, blocks):
     story = [P(kicker, 'Kicker'), P(title, 'H1N'), P(intro, 'BodyN'), Spacer(1, 5)]
@@ -121,6 +122,99 @@ def table(data, widths):
         ('RIGHTPADDING', (0,0), (-1,-1), 8), ('TOPPADDING', (0,0), (-1,-1), 7), ('BOTTOMPADDING', (0,0), (-1,-1), 7),
     ]))
     return t
+
+class VisualBoard(Flowable):
+    def __init__(self, kind, width=168*mm, height=92*mm):
+        Flowable.__init__(self)
+        self.kind = kind
+        self.width = width
+        self.height = height
+
+    def wrap(self, availWidth, availHeight):
+        return min(self.width, availWidth), self.height
+
+    def _label(self, c, text, x, y, color=MUTED, size=7.2, font='Consolas'):
+        c.setFont(font, size)
+        c.setFillColor(color)
+        c.drawString(x, y, text)
+
+    def _swatch(self, c, x, y, w, h, color, name, value, text_color=BONE):
+        c.setFillColor(color)
+        c.roundRect(x, y, w, h, 5, fill=1, stroke=0)
+        self._label(c, name, x+6, y+16, text_color, 8, 'Arial-Bold')
+        self._label(c, value, x+6, y+6, text_color, 6.5)
+
+    def _icon(self, c, x, y, kind, color=LINE, scale=1):
+        c.saveState()
+        c.setStrokeColor(color); c.setLineWidth(1.4*scale); c.setLineCap(1); c.setLineJoin(1)
+        if kind == 'code':
+            c.line(x+4*scale,y+10*scale,x+11*scale,y+17*scale); c.line(x+4*scale,y+10*scale,x+11*scale,y+3*scale)
+            c.line(x+22*scale,y+10*scale,x+15*scale,y+17*scale); c.line(x+22*scale,y+10*scale,x+15*scale,y+3*scale)
+        elif kind == 'data':
+            c.ellipse(x+5*scale,y+14*scale,x+21*scale,y+19*scale,fill=0,stroke=1); c.line(x+5*scale,y+16*scale,x+5*scale,y+4*scale); c.line(x+21*scale,y+16*scale,x+21*scale,y+4*scale); c.arc(x+5*scale,y+1*scale,x+21*scale,y+7*scale,0,180); c.arc(x+5*scale,y+7*scale,x+21*scale,y+13*scale,0,180)
+        elif kind == 'cloud':
+            c.arc(x+3*scale,y+7*scale,x+14*scale,y+18*scale,30,220); c.arc(x+10*scale,y+7*scale,x+23*scale,y+20*scale,40,210); c.line(x+7*scale,y+7*scale,x+21*scale,y+7*scale); c.arc(x+7*scale,y+3*scale,x+22*scale,y+11*scale,180,360)
+        elif kind == 'shield':
+            p=c.beginPath(); p.moveTo(x+13*scale,y+21*scale); p.lineTo(x+22*scale,y+17*scale); p.lineTo(x+21*scale,y+7*scale); p.lineTo(x+13*scale,y+2*scale); p.lineTo(x+5*scale,y+7*scale); p.lineTo(x+4*scale,y+17*scale); p.close(); c.drawPath(p,fill=0,stroke=1); c.line(x+8*scale,y+11*scale,x+12*scale,y+7*scale); c.line(x+12*scale,y+7*scale,x+19*scale,y+15*scale)
+        elif kind == 'chart':
+            c.line(x+4*scale,y+4*scale,x+4*scale,y+20*scale); c.line(x+4*scale,y+4*scale,x+23*scale,y+4*scale); c.line(x+7*scale,y+9*scale,x+12*scale,y+13*scale); c.line(x+12*scale,y+13*scale,x+16*scale,y+10*scale); c.line(x+16*scale,y+10*scale,x+22*scale,y+18*scale)
+        elif kind == 'users':
+            c.circle(x+9*scale,y+16*scale,4*scale,fill=0,stroke=1); c.circle(x+19*scale,y+16*scale,3*scale,fill=0,stroke=1); c.arc(x+3*scale,y+2*scale,x+15*scale,y+13*scale,0,180); c.arc(x+14*scale,y+3*scale,x+24*scale,y+12*scale,0,180)
+        elif kind == 'gear':
+            c.circle(x+13*scale,y+11*scale,6*scale,fill=0,stroke=1); c.circle(x+13*scale,y+11*scale,2*scale,fill=0,stroke=1)
+            for dx,dy in [(0,9),(0,-9),(9,0),(-9,0),(6,6),(-6,6),(6,-6),(-6,-6)]: c.line(x+13*scale,y+11*scale,x+(13+dx)*scale,y+(11+dy)*scale)
+        c.restoreState()
+
+    def draw(self):
+        c = self.canv; w = self.width; h = self.height
+        c.setFillColor(PANEL); c.roundRect(0, 0, w, h, 8, fill=1, stroke=0)
+        c.setStrokeColor(HexColor('#385344')); c.setLineWidth(.5); c.roundRect(0, 0, w, h, 8, fill=0, stroke=1)
+        if self.kind == 'colors':
+            gap=6; sw=(w-5*gap)/4; sh=35
+            items=[(INK,'INK','#0F1D18'),(PANEL,'PANEL','#15251E'),(PANEL2,'PANEL 2','#1A2C24'),(BONE,'BONE','#EDEBE3'),(GREEN,'CAMPO','#7FCB8F'),(GOLD,'SOL','#F0D179'),(BLUE,'CEU','#8FB8E8'),(PINK,'ROSA','#F2A0B6')]
+            for i,(col,n,v) in enumerate(items): self._swatch(c, gap+(i%4)*(sw+gap), h-46-(i//4)*(sh+8), sw, sh, col, n, v, INK if n in ('BONE','CAMPO','SOL','CEU','ROSA') else BONE)
+            self._label(c,'TOKENS DE COR  /  BASE + ACENTOS',gap,8,LIME,7)
+        elif self.kind == 'type':
+            self._label(c,'ARCHIVO  /  DISPLAY + BODY',12,h-18,LIME,7)
+            c.setFillColor(BONE); c.setFont('Arial-Bold',25); c.drawString(12,h-48,'Norvia Solutions')
+            c.setFont('Arial',12); c.drawString(12,h-67,'Tecnologia com clareza, estrutura e intencao.')
+            self._label(c,'ABCDEFGHIJKLMNOPQRSTUVWXYZ  abcdefghijklmnopqrstuvwxyz  0123456789',12,h-83,MUTED,6.5,'Arial')
+            c.setStrokeColor(HexColor('#385344')); c.line(w/2,10,w/2,h-10)
+            self._label(c,'SPLINE SANS MONO  /  LABELS + DATA',w/2+12,h-18,LIME,7)
+            c.setFillColor(GREEN); c.setFont('Consolas-Bold',18); c.drawString(w/2+12,h-48,'SYSTEM_READY')
+            c.setFont('Consolas',10); c.drawString(w/2+12,h-65,'space.4  /  #0F1D18  /  v1.0')
+            self._label(c,'ABCDEFGHIJKLMNOPQRSTUVWXYZ  abcdefghijklmnopqrstuvwxyz  0123456789',w/2+12,h-83,MUTED,6.5,'Consolas')
+        elif self.kind == 'icons':
+            kinds=[('code','Code'),('data','Data'),('cloud','Cloud'),('shield','Trust'),('chart','Growth'),('users','People'),('gear','Settings')]
+            x=14
+            for kind,name in kinds:
+                c.setFillColor(PANEL2); c.roundRect(x,27,44,44,7,fill=1,stroke=0); self._icon(c,x+8,38,kind,GREEN,1.1); self._label(c,name,x+5,15,MUTED,6.2); x+=50
+            self._label(c,'ICON SET  /  24 PX GRID  /  1.5 PX STROKE  /  ROUND CAPS',14,h-14,LIME,7)
+        elif self.kind == 'components':
+            self._label(c,'BUTTONS',12,h-14,LIME,7)
+            c.setFillColor(GREEN); c.roundRect(12,h-42,70,18,6,fill=1,stroke=0); self._label(c,'Primary  ->',21,h-36,INK,7,'Arial-Bold')
+            c.setFillColor(PANEL2); c.setStrokeColor(LINE); c.roundRect(90,h-42,70,18,6,fill=1,stroke=1); self._label(c,'Secondary',103,h-36,BONE,7,'Arial')
+            self._label(c,'INPUT + BADGE + ALERT',12,h-61,LIME,7)
+            c.setFillColor(PANEL2); c.setStrokeColor(LINE); c.roundRect(12,h-88,86,18,5,fill=1,stroke=1); self._label(c,'Project name',20,h-82,MUTED,7,'Arial')
+            c.setFillColor(HexColor('#243A2F')); c.roundRect(108,h-88,52,18,9,fill=1,stroke=0); self._label(c,'Active',119,h-82,GREEN,7,'Arial-Bold')
+            c.setFillColor(HexColor('#20382A')); c.roundRect(12,16,148,23,6,fill=1,stroke=0); self._icon(c,19,17,'shield',GREEN,.65); self._label(c,'Projeto salvo com sucesso',43,25,GREEN,7,'Arial-Bold')
+            self._label(c,'STATES  /  DEFAULT  HOVER  FOCUS  DISABLED  LOADING',12,6,MUTED,6.5)
+        elif self.kind == 'spacing':
+            self._label(c,'SPACING SCALE  /  4 PX BASE UNIT',12,h-14,LIME,7)
+            values=[('1',4),('2',8),('3',12),('4',16),('6',24),('8',32),('12',48),('16',64)]
+            x=14
+            for name,val in values:
+                c.setFillColor(GREEN); c.rect(x,24,val*1.15,20,fill=1,stroke=0); self._label(c,name,x,14,MUTED,6.5); self._label(c,str(val)+' px',x,50,BONE,6.5); x+=val*1.15+14
+        elif self.kind == 'dashboard':
+            # Reference board inspired by the supplied Figma file: same information in light and dark surfaces.
+            for ox, surface, text, sub in [(12, HexColor('#F7F8FA'), HexColor('#15251E'), HexColor('#6B7770')), (w/2+4, INK, BONE, MUTED)]:
+                c.setFillColor(surface); c.roundRect(ox, 10, w/2-20, h-20, 6, fill=1, stroke=0)
+                self._label(c,'Dashboard',ox+10,h-28,text,8,'Arial-Bold'); self._label(c,'Overview  /  Projects  /  Settings',ox+10,h-40,sub,5.5,'Consolas')
+                cardw=(w/2-42)/3
+                for j,(value,label) in enumerate([('24','Projects'),('86%','Progress'),('12','Alerts')]):
+                    xx=ox+8+j*(cardw+4); c.setFillColor(HexColor('#FFFFFF') if surface != INK else PANEL); c.roundRect(xx,h-75,cardw,24,4,fill=1,stroke=0); self._label(c,value,xx+5,h-63,text if surface != INK else BONE,9,'Arial-Bold'); self._label(c,label,xx+5,h-71,sub if surface != INK else MUTED,5.5,'Arial')
+                c.setStrokeColor(HexColor('#D9E0DB') if surface != INK else HexColor('#385344')); c.line(ox+10,27,ox+w/2-30,27); c.line(ox+10,27,ox+25,42); c.line(ox+25,42,ox+42,36); c.line(ox+42,36,ox+57,50); c.line(ox+57,50,ox+80,45)
+            self._label(c,'SAME COMPONENTS  /  LIGHT THEME + DARK THEME',12,2,LIME,6.5)
 
 story = []
 # Cover
@@ -265,7 +359,117 @@ story.append(P('Encerramento', 'H2N'))
 story.append(P('Norvia Solutions é tecnologia com estrutura, clareza e intenção. Este sistema transforma a marca em uma experiência consistente para clientes, equipes, produtos e parceiros. A próxima versão deve nascer das decisões reais que o negócio continuar tomando.', 'QuoteN'))
 story.append(P('NORVIA SOLUTIONS  /  ESTÚDIO DE SOFTWARE  //  v1.0', 'MonoN'))
 
+# Design System standalone opening: structured like a Figma library file.
+story.append(PageBreak())
+story += [P('NORVIA DESIGN SYSTEM', 'CoverTitle'), P('Biblioteca visual e de componentes', 'H1N'), Spacer(1, 14*mm), P('FOUNDATIONS  /  COMPONENTS  /  PATTERNS', 'Kicker'), P('Uma referencia para designers, desenvolvedores e equipes de produto.', 'QuoteN'), P('Versao 1.0  |  Light + Dark  |  Desktop + Mobile', 'SmallN'), Spacer(1, 52*mm), P('Organizado por pranchas visuais, tokens e exemplos de uso.', 'BodyN')]
+story.append(PageBreak())
+story += [P('NAVEGACAO', 'Kicker'), P('Indice do Design System', 'H1N'), P('Cada secao corresponde a uma biblioteca que pode ser usada no dia a dia do produto.', 'BodyN')]
+story.append(table([[cell('01', 'TableHead'), cell('Foundations'), cell('Cores, fontes, espacamento, grid, raio, sombra e motion.')], [cell('02', 'TableHead'), cell('Iconografia'), cell('Grade, espessura, paths e aplicacao dos icones.')], [cell('03', 'TableHead'), cell('Components'), cell('Buttons, inputs, cards, badges, alerts e data display.')], [cell('04', 'TableHead'), cell('Patterns'), cell('Navbar, sidebar, dashboard, landing e estados.')], [cell('05', 'TableHead'), cell('Quality bar'), cell('Acessibilidade, conteudo e governanca.')]], [18*mm, 48*mm, 94*mm]))
+story.append(PageBreak())
+
+# Visual asset sheets: usable references, not only prose.
+story.append(PageBreak())
+story += [P('PALETA VISUAL', 'Kicker'), P('A paleta abaixo e a referencia visual para interfaces, apresentacoes e materiais de marca.', 'BodyN'), VisualBoard('colors')]
+story.append(PageBreak())
+story += [P('TIPOGRAFIA EM USO', 'Kicker'), P('Estas sao as fontes e suas funcoes. Arquivo e a voz principal; Spline Sans Mono organiza a camada tecnica.', 'BodyN'), VisualBoard('type')]
+story.append(PageBreak())
+story += [P('ICONOGRAFIA', 'Kicker'), P('Icones vetoriais de apoio com grade de 24 px, traco de 1.5 px e terminais arredondados.', 'BodyN'), VisualBoard('icons')]
+story.append(PageBreak())
+story += [P('COMPONENTES VISUAIS', 'Kicker'), P('Exemplos de componentes renderizados com os tokens da Norvia. A documentacao define o comportamento; esta prancha mostra a linguagem.', 'BodyN'), VisualBoard('components')]
+story.append(PageBreak())
+story += [P('ESCALA DE ESPACAMENTO', 'Kicker'), P('A unidade de 4 px organiza o ritmo de todas as interfaces. Use a escala, nao valores improvisados.', 'BodyN'), VisualBoard('spacing')]
+story.append(PageBreak())
+story += [P('PADRAO DE DASHBOARD', 'Kicker'), P('Uma mesma linguagem em claro e escuro', 'H1N'), P('O arquivo de referencia usa telas de produto como biblioteca. A Norvia deve manter os mesmos componentes entre temas, mudando apenas superficie, contraste e semantica.', 'BodyN'), VisualBoard('dashboard')]
+
+# Design system expansion: reference documentation for product teams.
+story.append(PageBreak())
+story += [P('DESIGN SYSTEM', 'Kicker'), P('Foundations: a base que sustenta tudo', 'H1N'), P('Foundations sao as decisoes mais reutilizadas do sistema. Devem ser aplicadas antes de qualquer componente novo.', 'BodyN')]
+story.append(card_grid([
+('Cor', 'Use tokens semanticos em vez de hex espalhado. Cor de produto identifica contexto; cor semantica comunica estado.', GREEN),
+('Espaco', 'A escala de 4 px organiza padding, gap e margem. Componentes respiram em multiplos previsiveis.', GREEN),
+('Tipo', 'Archivo cria a voz editorial. Spline Sans Mono cria a camada tecnica para labels, numeros e dados.', GREEN),
+('Forma', 'Raios medios e superficies escuras criam um sistema contemporaneo sem parecer generico.', GREEN),
+('Profundidade', 'Bordas sutis primeiro; sombras apenas quando existe uma relacao de camada.', GREEN),
+('Movimento', 'Animar ajuda a entender mudanca de estado. Nunca use movimento como decoracao obrigatoria.', GREEN),
+], 2))
+story.append(PageBreak())
+story += [P('TOKENS', 'Kicker'), P('Tokens sao nomes de decisao. O produto usa o nome; a marca controla o valor.', 'BodyN')]
+story.append(table([[cell('GRUPO', 'TableHead'), cell('EXEMPLOS', 'TableHead'), cell('REGRA', 'TableHead')], [cell('Color'), cell('color.text.primary, color.brand, color.semantic.success'), cell('Nao usar valores diretos quando existir token.')], [cell('Space'), cell('space.1 ate space.24'), cell('Usar a escala para padding, gap, margin e layout.')], [cell('Radius'), cell('radius.sm, md, lg, xl, pill'), cell('Raio pequeno para controle; medio para superficies; pill para tags.')], [cell('Type'), cell('font.display, font.body, font.mono'), cell('Escolher pela funcao, nao pela preferencia individual.')], [cell('Motion'), cell('motion.fast, base, slow'), cell('Respeitar prefers-reduced-motion.')]], [31*mm, 67*mm, 64*mm]))
+story.append(PageBreak())
+story += [P('GRID E RESPONSIVIDADE', 'Kicker'), P('O grid e invisivel quando funciona. Ele cria ritmo, alinhamento e uma leitura consistente em qualquer tela.', 'BodyN')]
+story.append(card_grid([
+('Container', 'Mobile: 100% menos 20 px de cada lado. Tablet: maximo 832 px. Desktop: maximo 1152 px.', GREEN),
+('Colunas', 'Desktop usa 12 colunas; tablet 8; mobile 4. O gap deve seguir space.4 ou space.6.', GREEN),
+('Breakpoint sm', 'A partir de 640 px, navegação e cards podem ganhar mais respiro.', BLUE),
+('Breakpoint md', 'A partir de 832 px, layouts de duas colunas e sidebars ficam confortaveis.', BLUE),
+('Breakpoint lg', 'A partir de 1152 px, use a largura total do container e areas de apoio.', BLUE),
+('Regra mobile', 'Empilhe antes de comprimir. Preserve hierarquia, toque e leitura.', GREEN),
+], 2))
+story.append(PageBreak())
+story += [P('BUTTONS E LINKS', 'Kicker'), P('Acoes devem ter uma hierarquia obvia e estados que expliquem o que esta acontecendo.', 'BodyN')]
+story.append(table([[cell('VARIANTE', 'TableHead'), cell('QUANDO USAR', 'TableHead'), cell('ESTADOS OBRIGATORIOS', 'TableHead')], [cell('Primary'), cell('Acao principal da tela ou fluxo.'), cell('Default, hover, pressed, focus, disabled, loading.')], [cell('Secondary'), cell('Acao alternativa sem competir com a principal.'), cell('Default, hover, pressed, focus, disabled.')], [cell('Tertiary'), cell('Acao discreta, contextual ou em toolbar.'), cell('Default, hover, focus, disabled.')], [cell('Destructive'), cell('Excluir, cancelar perda ou remover dado.'), cell('Default, hover, focus, disabled, confirmacao.')], [cell('Text link'), cell('Navegacao dentro de texto ou lista.'), cell('Default, hover, visited quando aplicavel, focus.')]], [32*mm, 63*mm, 67*mm]))
+story.append(Spacer(1, 12))
+story.append(P('Anatomia', 'H2N'))
+story.append(P('Label curto + icone opcional + area de toque minima de 44 px. O texto deve descrever o resultado: Salvar projeto e melhor que Enviar.', 'BodyN'))
+story.append(PageBreak())
+story += [P('FORMULARIOS', 'Kicker'), P('Formularios devem reduzir duvida, nao apenas coletar informacao.', 'BodyN')]
+story.append(table([[cell('ELEMENTO', 'TableHead'), cell('REGRA DE CONTEUDO', 'TableHead'), cell('VALIDACAO', 'TableHead')], [cell('Label'), cell('Sempre visivel e escrito como tarefa ou dado.'), cell('Nao depende apenas de placeholder.')], [cell('Helper text'), cell('Explica formato, limite ou consequencia.'), cell('Permanece proximo do campo.')], [cell('Error'), cell('Diz o que aconteceu e como corrigir.'), cell('Cor + texto + foco no primeiro erro.')], [cell('Select'), cell('Usar quando ha opcoes conhecidas e limitadas.'), cell('Mostra valor atual e opcao de limpar quando necessario.')], [cell('Checkbox'), cell('Usar para escolhas independentes.'), cell('Nunca usar so cor para indicar marcado.')], [cell('Radio'), cell('Usar para escolha unica em conjunto pequeno.'), cell('Uma opcao deve estar selecionada quando obrigatorio.')]], [29*mm, 72*mm, 61*mm]))
+story.append(PageBreak())
+story += [P('CARDS, BADGES E ALERTAS', 'Kicker'), P('Superficies ajudam a agrupar informacao. O agrupamento deve ter uma razao de uso.', 'BodyN')]
+story.append(card_grid([
+('Card de produto', 'Topo com acento, titulo, resumo, metadados e acao. Nao esconder o objetivo no hover.', GREEN),
+('Card de metrica', 'Numero grande, label curto, periodo e variacao. Mostrar unidade e contexto.', BLUE),
+('Badge', 'Categoria ou estado curto. Nunca usar badge como paragrafo ou unica explicacao.', LIME),
+('Alert', 'Titulo opcional, explicacao, acao e icone semantico. Pode ser success, info, warning ou danger.', GOLD),
+('Toast', 'Feedback breve de uma acao recente. Nao usar para erros que exigem leitura longa.', PINK),
+('Empty state', 'Explica por que esta vazio, o que fazer agora e o que acontecera depois.', PURPLE),
+], 2))
+story.append(PageBreak())
+story += [P('DATA DISPLAY', 'Kicker'), P('Dados precisam ser comparaveis, escaneaveis e honestos sobre seu contexto.', 'BodyN')]
+story.append(table([[cell('PADRAO', 'TableHead'), cell('USO', 'TableHead'), cell('CUIDADOS', 'TableHead')], [cell('Metric'), cell('Valor principal e variacao.'), cell('Mostrar periodo, unidade e direcao.')], [cell('Table'), cell('Listas operacionais e comparacoes.'), cell('Cabecalho fixo, alinhamento por tipo, overflow no mobile.')], [cell('Chart'), cell('Tendencia, distribuicao ou comparacao.'), cell('Nao distorcer escala; legenda acessivel; cor redundante.')], [cell('Progress'), cell('Avanco para um objetivo conhecido.'), cell('Mostrar valor atual e total quando possivel.')], [cell('Timeline'), cell('Historico e etapas.'), cell('Ordenacao e estado atual devem ser explicitos.')]], [34*mm, 55*mm, 73*mm]))
+story.append(Spacer(1, 10))
+story.append(P('Regra de cor', 'H2N'))
+story.append(P('Use cor para destacar uma conclusao, nao para pintar toda a informacao. Em graficos, combine cor com label, forma, padrao ou texto.', 'BodyN'))
+story.append(PageBreak())
+story += [P('NAVBAR, SIDEBAR E NAVEGACAO', 'Kicker'), P('Navegacao deve orientar o usuario sem disputar com a tarefa principal.', 'BodyN')]
+story.append(card_grid([
+('Navbar institucional', 'Marca, links principais, acao de contato. Sticky apenas quando ajuda o retorno.', GREEN),
+('Sidebar de produto', 'Logo do produto, grupos de navegacao, estado ativo, suporte e perfil. Pode colapsar.', BLUE),
+('Breadcrumb', 'Usar em hierarquias profundas; o ultimo item e o contexto atual, nao um link redundante.', GREEN),
+('Tabs', 'Trocar visoes do mesmo nivel. Nao usar tabs para etapas que precisam de sequencia.', GOLD),
+('Pagination', 'Para conjuntos extensos; manter pagina atual, proximos passos e quantidade total.', PURPLE),
+('Mobile navigation', 'Prioriza as 3 a 5 acoes mais frequentes. O restante vai para menu contextual.', PINK),
+], 2))
+story.append(PageBreak())
+story += [P('DASHBOARD E OPERACAO', 'Kicker'), P('Dashboards Norvia devem transformar informacao em proxima decisao.', 'BodyN')]
+story.append(table([[cell('FAIXA', 'TableHead'), cell('CONTEUDO', 'TableHead'), cell('DECISAO ESPERADA', 'TableHead')], [cell('Header'), cell('Titulo, periodo, filtros e acao primaria.'), cell('O que estou vendo e o que posso fazer?')], [cell('Overview'), cell('3 a 5 metricas de alto nivel.'), cell('Algo mudou? A tendencia e positiva?')], [cell('Main work'), cell('Tabela, fila, grafico ou calendario.'), cell('Qual item exige atencao agora?')], [cell('Context'), cell('Ajuda, historico, filtros salvos.'), cell('De onde veio este dado?')], [cell('Feedback'), cell('Toast, alert, empty ou erro.'), cell('O sistema confirmou ou precisa de acao?')]], [29*mm, 71*mm, 62*mm]))
+story.append(PageBreak())
+story += [P('ACESSIBILIDADE', 'Kicker'), P('Acessibilidade e parte da qualidade Norvia, nao uma etapa opcional.', 'BodyN')]
+story.append(card_grid([
+('Contraste', 'Texto principal deve ser legivel sobre a superficie. Nunca depender apenas de cor para transmitir estado.', GREEN),
+('Foco', 'Todo elemento interativo recebe foco visivel. O anel usa o token focus-ring.', GOLD),
+('Toque', 'Alvos interativos devem ter pelo menos 44 px em mobile.', BLUE),
+('Teclado', 'Fluxo logico, sem armadilhas de foco, escape para fechar overlays.', PURPLE),
+('Leitura', 'Hierarquia semantica, labels claros, texto alternativo e linguagem direta.', PINK),
+('Movimento', 'Reduzir transicoes para usuarios que preferem menos movimento.', GREEN),
+], 2))
+story.append(PageBreak())
+story += [P('CONTEUDO E VOZ DE INTERFACE', 'Kicker'), P('O produto fala como a Norvia: direto, humano, preciso e sem promessa vazia.', 'BodyN')]
+story.append(table([[cell('SITUACAO', 'TableHead'), cell('EVITAR', 'TableHead'), cell('PREFERIR', 'TableHead')], [cell('Sucesso'), cell('Tudo certo!'), cell('Projeto salvo. Voce pode continuar editando.')], [cell('Erro'), cell('Algo deu errado.'), cell('Nao foi possivel salvar. Verifique a conexao e tente novamente.')], [cell('Vazio'), cell('Nenhum resultado.'), cell('Ainda nao ha clientes cadastrados. Adicione o primeiro para comecar.')], [cell('Confirmacao'), cell('Tem certeza?'), cell('Excluir este cliente? Esta acao nao pode ser desfeita.')], [cell('Loading'), cell('Aguarde...'), cell('Carregando dados do projeto.')]], [32*mm, 58*mm, 72*mm]))
+story.append(PageBreak())
+story += [P('GOVERNANCA DO SISTEMA', 'Kicker'), P('Um sistema profissional precisa de criterio para crescer sem virar uma colecao de excecoes.', 'BodyN')]
+story.append(card_grid([
+('Novo componente', 'Antes de criar, procure um padrao existente. Se a necessidade for recorrente, documente anatomia, props e estados.', GREEN),
+('Nomeacao', 'Use nomes funcionais e previsiveis. Button, Card, Input, Alert. Variantes descrevem comportamento.', BLUE),
+('Review', 'Toda mudanca deve incluir exemplo visual, responsividade, acessibilidade e impacto nos tokens.', GOLD),
+('Versionamento', 'Atualize versao, changelog e migration note quando houver breaking change.', PURPLE),
+('Deprecacao', 'Marque o componente, ofereca substituto e mantenha o periodo de transicao documentado.', PINK),
+('Ownership', 'Design define linguagem; engenharia define implementacao; produto valida contexto e resultado.', GREEN),
+], 2))
+story.append(Spacer(1, 12))
+story.append(P('Definition of done', 'H2N'))
+story.append(P('Um componente so esta pronto quando possui tokens, estados, exemplos desktop e mobile, comportamento de teclado, texto de acessibilidade, teste visual e documentacao de uso.', 'BodyN'))
+
 doc = Book(PDF)
-doc.handle_nextPageTemplate('cover')
 doc.build(story)
 print(PDF)
