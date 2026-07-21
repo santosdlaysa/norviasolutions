@@ -1,6 +1,6 @@
 # Norvia Solutions
 
-Site institucional da Norvia Solutions — estúdio de software com aplicativos mobile (Doce Preço, Orgenyx, Organiza Ela) e sistemas web (AgroNet, CaféControll, AgendaMais, Lumera Fest, Daex).
+Site institucional da Norvia Solutions — estúdio de software com aplicativos mobile (Doce Preço, Orgenyx, Organiza Ela) e sistemas web (AgroNet, Chef Flow, AgendaMais, Lumera Fest, Daex).
 
 ## Stack
 

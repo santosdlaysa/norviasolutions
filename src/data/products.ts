@@ -63,9 +63,9 @@ export const PRODUCTS: Product[] = [
     links: [{ label: 'Acessar o AgroNet', url: 'https://agronet.vercel.app/login' }],
   },
   {
-    slug: 'cafecontroll',
-    image: '/products/cafecontroll.png',
-    name: 'CaféControll',
+    slug: 'chef-flow',
+    image: '/products/chef-flow.png',
+    name: 'Chef Flow',
     tag: 'Cafeteria',
     hue: 'var(--cafe)',
     platform: 'Web',
@@ -73,7 +73,7 @@ export const PRODUCTS: Product[] = [
     summary:
       'Controle de produção e vendas de café: estoque, caixa e rotina da cafeteria em um só lugar.',
     description: [
-      'Entre o balcão e a máquina de espresso, sobra pouco tempo para gestão. O CaféControll concentra o controle da cafeteria em uma tela só.',
+      'Entre o balcão e a máquina de espresso, sobra pouco tempo para gestão. O Chef Flow concentra o controle da cafeteria em uma tela só.',
       'Vendas, estoque e caixa registrados no momento em que acontecem — para o dono saber, no fim do dia, exatamente como o negócio está.',
     ],
     features: [
@@ -82,7 +82,7 @@ export const PRODUCTS: Product[] = [
       { title: 'Fechamento de caixa', text: 'Resumo do dia pronto, sem conferência manual.' },
       { title: 'Visão do negócio', text: 'Números do mês na tela para decidir com base em dados.' },
     ],
-    links: [],
+    links: [{ label: 'Acessar o Chef Flow', url: 'https://wannacontrol-web.vercel.app/' }],
   },
   {
     slug: 'orgenyx',
