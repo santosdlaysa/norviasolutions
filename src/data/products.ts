@@ -38,7 +38,9 @@ export const PRODUCTS: Product[] = [
       { title: 'Comparação de ofertas', text: 'Acompanhe preços de produtos e encontre as melhores condições de compra.' },
       { title: 'Feito para o dia a dia', text: 'Interface simples, pensada para quem usa entre uma fornada e outra.' },
     ],
-    links: [{ label: 'Baixar na App Store', url: 'https://apps.apple.com/us/app/docepre%C3%A7o/id6761034172' }],
+    links: [{ label: 'Baixar na App Store', url: 'https://apps.apple.com/us/app/docepre%C3%A7o/id6761034172' },
+      { label: 'Baixar na Google Play', url: 'https://play.google.com/store/apps/details?id=com.orgenyx' }
+    ],
   },
   {
     slug: 'agronet',
@@ -63,9 +65,9 @@ export const PRODUCTS: Product[] = [
     links: [{ label: 'Acessar o AgroNet', url: 'https://agronet.vercel.app/login' }],
   },
   {
-    slug: 'chef-flow',
-    image: '/products/chef-flow.png',
-    name: 'Chef Flow',
+    slug: 'cafecontroll',
+    image: '/products/cafecontroll.png',
+    name: 'CaféControll',
     tag: 'Cafeteria',
     hue: 'var(--cafe)',
     platform: 'Web',
@@ -73,7 +75,7 @@ export const PRODUCTS: Product[] = [
     summary:
       'Controle de produção e vendas de café: estoque, caixa e rotina da cafeteria em um só lugar.',
     description: [
-      'Entre o balcão e a máquina de espresso, sobra pouco tempo para gestão. O Chef Flow concentra o controle da cafeteria em uma tela só.',
+      'Entre o balcão e a máquina de espresso, sobra pouco tempo para gestão. O CaféControll concentra o controle da cafeteria em uma tela só.',
       'Vendas, estoque e caixa registrados no momento em que acontecem — para o dono saber, no fim do dia, exatamente como o negócio está.',
     ],
     features: [
@@ -82,7 +84,7 @@ export const PRODUCTS: Product[] = [
       { title: 'Fechamento de caixa', text: 'Resumo do dia pronto, sem conferência manual.' },
       { title: 'Visão do negócio', text: 'Números do mês na tela para decidir com base em dados.' },
     ],
-    links: [{ label: 'Acessar o Chef Flow', url: 'https://wannacontrol-web.vercel.app/' }],
+    links: [],
   },
   {
     slug: 'orgenyx',
